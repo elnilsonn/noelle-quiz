@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#120c24">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -139,16 +140,70 @@ body.welcome-mode.photo-ready .orbs { opacity: .14; }
   .qright{width:100%;border-left:none;border-top:1px solid rgba(255,255,255,.08);max-height:none;}
 }
 @media(max-width:680px){
-  .photo-wall { gap: .55rem; padding: .85rem 0; }
-  .photo-row { gap: .55rem; }
-  .photo-tile { width: clamp(96px, 28vw, 150px); border-radius: 16px; }
-  .lang-row { top: .9rem; right: .9rem; }
-  .welcome-card { padding: 4.25rem 1.1rem 1.5rem; border-radius: 22px; }
+  html, body { min-height: 100dvh; background: #120c24; }
+  body.welcome-mode {
+    background:
+      radial-gradient(circle at top, rgba(124,58,237,.22), transparent 38%),
+      linear-gradient(180deg, #17102f 0%, #0f0a21 100%);
+  }
+  .orbs { display: none; }
+  #welcome {
+    min-height: 100dvh;
+    padding:
+      max(1rem, env(safe-area-inset-top))
+      .7rem
+      max(.85rem, env(safe-area-inset-bottom))
+      .7rem;
+    justify-content: center;
+  }
+  .photo-wall {
+    gap: .45rem;
+    padding: .35rem 0;
+    justify-content: space-between;
+    opacity: 0;
+  }
+  body.welcome-mode.photo-ready .photo-wall { opacity: .94; }
+  .photo-row { gap: .45rem; }
+  .photo-tile {
+    width: clamp(102px, 31vw, 160px);
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.2);
+  }
+  .photo-tile img { filter: saturate(1.02) contrast(1.02) brightness(.92); }
+  .welcome-tint {
+    background:
+      linear-gradient(180deg, rgba(8,5,20,.2), rgba(8,5,20,.52)),
+      radial-gradient(circle at center, rgba(12,8,28,.06), rgba(12,8,28,.38));
+  }
+  .lang-row {
+    top: auto;
+    right: auto;
+    position: relative;
+    justify-content: center;
+    margin-bottom: .75rem;
+  }
+  .welcome-card {
+    width: min(100%, 96vw);
+    padding: 1.1rem .95rem 1.25rem;
+    border-radius: 24px;
+    background: rgba(13,8,32,.54);
+    border: 1px solid rgba(255,255,255,.1);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 18px 40px rgba(0,0,0,.18);
+  }
+  .heart-icon { font-size: 3.25rem; margin-bottom: .7rem; }
+  .w-hey { font-size: 2rem; margin-bottom: .35rem; }
   .w-title { font-size: clamp(1.9rem, 9vw, 2.6rem); }
-  .w-msg { font-size: .96rem; line-height: 1.65; }
-  .career-pills { gap: .35rem; }
+  .w-msg { font-size: .96rem; line-height: 1.55; margin-bottom: 1.2rem; }
+  .career-pills { gap: .35rem; max-width: 100%; margin-bottom: 1.1rem; }
   .cpill { font-size: .72rem; padding: .22rem .62rem; }
-  .start-btn { width: 100%; max-width: 320px; padding: .95rem 1.4rem; font-size: 1rem; }
+  .start-btn {
+    width: 100%;
+    max-width: none;
+    padding: 1rem 1.4rem;
+    font-size: 1rem;
+    box-shadow: 0 14px 34px rgba(124,58,237,.34);
+  }
   .qtop { padding:.8rem .9rem; position:sticky; top:0; z-index:5; }
   .answers { max-width: 100%; }
   .abtn { padding: .95rem 1rem; font-size: .94rem; }

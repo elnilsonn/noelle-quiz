@@ -158,9 +158,9 @@ body.welcome-mode.photo-ready .orbs { opacity: .14; }
     padding:
       max(1rem, env(safe-area-inset-top))
       .7rem
-      max(.2rem, env(safe-area-inset-bottom))
+      0
       .7rem;
-    justify-content: center;
+    justify-content: flex-start;
   }
   .mobile-love-note {
     display: flex;
@@ -240,12 +240,14 @@ body.welcome-mode.photo-ready .orbs { opacity: .14; }
   }
   .welcome-card {
     width: min(100%, 96vw);
-    padding: 1.1rem .95rem 1.25rem;
+    padding: 1.05rem .95rem 1.15rem;
     border-radius: 24px;
     background: rgba(13,8,32,.54);
     border: 1px solid rgba(255,255,255,.1);
     backdrop-filter: blur(10px);
     box-shadow: 0 18px 40px rgba(0,0,0,.18);
+    margin-top: .15rem;
+    margin-bottom: calc(-1 * env(safe-area-inset-bottom) - 2.75rem);
   }
   .heart-icon { font-size: 3.25rem; margin-bottom: .7rem; }
   .w-hey { font-size: 2rem; margin-bottom: .35rem; }

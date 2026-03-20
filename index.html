@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#120c24">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -43,7 +46,8 @@ body.welcome-mode.photo-ready .orbs { opacity: .14; }
 .screen.active { display:flex; }
 
 #welcome { flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem 1.25rem; }
-.welcome-card { width:min(100%,660px);padding:clamp(1.7rem,4vw,2.4rem);border-radius:28px;background:rgba(13,8,32,.72);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(18px);box-shadow:0 28px 80px rgba(0,0,0,.28); }
+.mobile-love-note { display:none; }
+.welcome-card { width:min(100%,660px);padding:clamp(1.7rem,4vw,2.4rem);border-radius:28px;background:rgba(13,8,32,.72);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(18px);box-shadow:0 28px 80px rgba(0,0,0,.28);transition:opacity .55s ease, transform .55s ease; }
 .lang-row { position:absolute;top:1.25rem;right:1.25rem;display:flex;gap:.4rem; }
 .lbtn { background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:.35rem .9rem;border-radius:999px;cursor:pointer;font-family:inherit;font-size:.8rem;font-weight:700;transition:all .2s; }
 .lbtn.on { background:rgba(255,255,255,.25);border-color:rgba(255,255,255,.5); }
@@ -148,6 +152,8 @@ body.welcome-mode.photo-ready .orbs { opacity: .14; }
   }
   .orbs { display: none; }
   #welcome {
+    position: relative;
+    overflow: hidden;
     min-height: 100dvh;
     padding:
       max(1rem, env(safe-area-inset-top))
@@ -155,6 +161,42 @@ body.welcome-mode.photo-ready .orbs { opacity: .14; }
       max(.85rem, env(safe-area-inset-bottom))
       .7rem;
     justify-content: center;
+  }
+  .mobile-love-note {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .35rem;
+    width: min(100%, 88vw);
+    max-width: 360px;
+    padding: 1.15rem 1rem;
+    border-radius: 24px;
+    background: rgba(13,8,32,.5);
+    border: 1px solid rgba(255,255,255,.1);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 18px 40px rgba(0,0,0,.16);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(.96);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .55s ease, transform .55s ease;
+    z-index: 3;
+  }
+  .mobile-love-note .heart-icon { font-size: 2.8rem; margin-bottom: 0; }
+  .mobile-love-title { font-family: 'Caveat', cursive; font-size: 2rem; line-height: 1; }
+  .mobile-love-sub { font-size: .92rem; color: rgba(255,255,255,.72); }
+  body.mobile-intro-active #welcome .mobile-love-note {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  body.mobile-intro-active #welcome .welcome-card,
+  body.mobile-intro-active #welcome .lang-row {
+    opacity: 0;
+    transform: translateY(18px) scale(.98);
+    pointer-events: none;
   }
   .photo-wall {
     gap: .45rem;
@@ -181,6 +223,7 @@ body.welcome-mode.photo-ready .orbs { opacity: .14; }
     position: relative;
     justify-content: center;
     margin-bottom: .75rem;
+    transition: opacity .55s ease, transform .55s ease;
   }
   .welcome-card {
     width: min(100%, 96vw);
@@ -226,6 +269,11 @@ body.welcome-mode.photo-ready .orbs { opacity: .14; }
   <div class="lang-row">
     <button class="lbtn on" onclick="setLang('en')">EN</button>
     <button class="lbtn" onclick="setLang('es')">ES</button>
+  </div>
+  <div class="mobile-love-note" id="mobile-love-note" aria-hidden="true">
+    <div class="heart-icon" id="m-note-emoji">ðŸ’Œ</div>
+    <div class="mobile-love-title" id="m-note-title">Hey love</div>
+    <div class="mobile-love-sub" id="m-note-sub">Just for you</div>
   </div>
   <div class="welcome-card">
   <div class="heart-icon">ðŸ’Œ</div>
@@ -577,6 +625,9 @@ const PHOTO_SOURCES = [
 const TOTAL_POTENTIAL = buildPotentialMap(Q.length);
 
 let lang='en',curQ=0,scores={},elim={},hist=[],shuffledAnswers=[];
+const MOBILE_MEDIA=window.matchMedia('(max-width:680px)');
+let mobileIntroTimer=null;
+let mobileIntroSeen=false;
 
 function init(){
   C.forEach(c=>{scores[c.id]=0;elim[c.id]=false;});
@@ -629,10 +680,19 @@ function refreshEliminations(answeredCount){
   });
 }
 
+function isMobileView(){
+  return MOBILE_MEDIA.matches;
+}
+
 function setupPhotoWall(){
-  const rows=[...document.querySelectorAll('#photo-wall .photo-row')];
+  const wall=document.getElementById('photo-wall');
+  const rowCount=isMobileView()?6:3;
+  if(wall.children.length!==rowCount){
+    wall.innerHTML=Array.from({length:rowCount},()=>'<div class="photo-row"></div>').join('');
+  }
+  const rows=[...wall.querySelectorAll('.photo-row')];
   if(!rows.length)return;
-  const durations=[118,126,122];
+  const durations=isMobileView()?[86,94,90,98,92,100]:[118,126,122];
   rows.forEach((row,index)=>{
     const ordered=index%2===0 ? PHOTO_SOURCES : [...PHOTO_SOURCES].reverse();
     const tiles=[...ordered,...ordered];
@@ -642,6 +702,19 @@ function setupPhotoWall(){
     row.style.setProperty('--row-shift', `${row.scrollWidth/2}px`);
   });
   document.body.classList.add('photo-ready');
+}
+
+function updateMobileIntro(force=false){
+  clearTimeout(mobileIntroTimer);
+  document.body.classList.remove('mobile-intro-active');
+  if(!isMobileView() || !document.body.classList.contains('welcome-mode'))return;
+  if(!mobileIntroSeen || force){
+    document.body.classList.add('mobile-intro-active');
+    mobileIntroSeen=true;
+    mobileIntroTimer=setTimeout(()=>{
+      document.body.classList.remove('mobile-intro-active');
+    }, 1800);
+  }
 }
 
 function setLang(l){
@@ -655,6 +728,9 @@ function toggleLang(){setLang(lang==='en'?'es':'en');}
 
 function renderWelcome(){
   const t=lang==='en';
+  document.getElementById('m-note-emoji').textContent=fixMojibake('ðŸ’Œ');
+  document.getElementById('m-note-title').textContent=fixMojibake(t?'Hey love':'Hola amor');
+  document.getElementById('m-note-sub').textContent=fixMojibake(t?'I made this just for you':'Hice esto solo para ti');
   document.getElementById('w-hey').textContent=fixMojibake(t?'Hey love,':'Oye amor,');
   document.getElementById('w-title').textContent=fixMojibake(t?'I made this for you ðŸŒ¸':'Hice esto para ti ðŸŒ¸');
   document.getElementById('w-msg').innerHTML=t
@@ -668,6 +744,12 @@ function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.body.classList.toggle('welcome-mode',id==='welcome');
+  if(id==='welcome'){
+    updateMobileIntro();
+  }else{
+    clearTimeout(mobileIntroTimer);
+    document.body.classList.remove('mobile-intro-active');
+  }
 }
 
 function startQuiz(){init();hist=[];curQ=0;showRound(1);}
@@ -760,6 +842,19 @@ function showResult(){
 }
 
 function resetQuiz(){init();hist=[];curQ=0;show('welcome');renderWelcome();}
+
+function handleViewportChange(){
+  setupPhotoWall();
+  if(document.body.classList.contains('welcome-mode')){
+    updateMobileIntro(true);
+  }
+}
+
+if(typeof MOBILE_MEDIA.addEventListener==='function'){
+  MOBILE_MEDIA.addEventListener('change',handleViewportChange);
+}else if(typeof MOBILE_MEDIA.addListener==='function'){
+  MOBILE_MEDIA.addListener(handleViewportChange);
+}
 
 init();repairStaticText();renderWelcome();show('welcome');setupPhotoWall();
 </script>

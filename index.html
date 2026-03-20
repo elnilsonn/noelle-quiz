@@ -12,13 +12,17 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { min-height: 100%; }
 body { font-family: 'Nunito', sans-serif; background: #0d0820; min-height: 100vh; color: #fff; overflow-x: hidden; }
+body.booting #welcome .welcome-stage { opacity: 0; visibility: hidden; }
+body.booting .photo-wall,
+body.booting .welcome-tint { opacity: 0 !important; transition: none !important; }
+body.booting .photo-row { animation-play-state: paused; }
 
 .photo-wall { position: fixed; inset: 0; z-index: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: .85rem; padding: 1rem 0; opacity: 0; transition: opacity .35s ease; pointer-events: none; }
-.photo-row { display: flex; gap: .85rem; width: max-content; will-change: transform; }
+.photo-row { display: flex; gap: .85rem; width: max-content; will-change: transform; transform: translate3d(0,0,0); -webkit-transform: translate3d(0,0,0); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .photo-row.dir-right { animation: drift-right 108s linear infinite; }
 .photo-row.dir-left { animation: drift-left 108s linear infinite; }
-.photo-tile { width: clamp(120px, 16vw, 240px); aspect-ratio: 3 / 4; border-radius: 22px; overflow: hidden; background: rgba(255,255,255,.08); box-shadow: 0 18px 50px rgba(0,0,0,.22); flex-shrink: 0; }
-.photo-tile img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(.96) contrast(.98); }
+.photo-tile { width: clamp(120px, 16vw, 240px); aspect-ratio: 3 / 4; border-radius: 22px; overflow: hidden; background: rgba(255,255,255,.08); box-shadow: 0 18px 50px rgba(0,0,0,.22); flex-shrink: 0; contain: paint; transform: translateZ(0); -webkit-transform: translateZ(0); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.photo-tile img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(.96) contrast(.98); transform: translateZ(0); -webkit-transform: translateZ(0); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .welcome-tint { position: fixed; inset: 0; z-index: 0; background: radial-gradient(circle at top, rgba(255,255,255,.12), transparent 35%), linear-gradient(180deg, rgba(8,5,20,.4), rgba(8,5,20,.76)); opacity: 0; transition: opacity .35s ease; pointer-events: none; }
 body.welcome-mode.photo-ready .photo-wall,
 body.welcome-mode.photo-ready .welcome-tint { opacity: 1; }
@@ -45,7 +49,8 @@ body.welcome-mode.photo-ready .orbs { opacity: .14; }
 .screen { position:relative;z-index:1;min-height:100vh;display:none; }
 .screen.active { display:flex; }
 
-#welcome { flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem 1.25rem; }
+#welcome { flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem 1.25rem; isolation:isolate; }
+.welcome-stage { position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .mobile-love-note { display:none; }
 .welcome-card { width:min(100%,660px);padding:clamp(1.7rem,4vw,2.4rem);border-radius:28px;background:rgba(13,8,32,.72);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(18px);box-shadow:0 28px 80px rgba(0,0,0,.28);transition:opacity .55s ease, transform .55s ease; }
 .lang-row { position:absolute;top:1.25rem;right:1.25rem;display:flex;gap:.4rem; }
@@ -145,8 +150,8 @@ body.welcome-mode.photo-ready .orbs { opacity: .14; }
 }
 @media(max-width:680px){
   html { height: -webkit-fill-available; }
-  html, body { min-height: 100svh; min-height: -webkit-fill-available; background: #090611; }
-  .screen { min-height: 100svh; min-height: -webkit-fill-available; }
+  html, body { min-height: 100svh; min-height: 100dvh; min-height: -webkit-fill-available; background: #090611; }
+  .screen { min-height: 100svh; min-height: 100dvh; min-height: -webkit-fill-available; }
   body.welcome-mode {
     background:
       radial-gradient(circle at top, rgba(124,58,237,.16), transparent 34%),
@@ -155,8 +160,15 @@ body.welcome-mode.photo-ready .orbs { opacity: .14; }
   .orbs { display: none; }
   #welcome {
     position: relative;
-    overflow: visible;
+    overflow: hidden;
+    min-height: calc(100svh + env(safe-area-inset-bottom) + 8rem);
+    min-height: calc(100dvh + env(safe-area-inset-bottom) + 8rem);
+    padding: 0;
+    justify-content: flex-start;
+  }
+  .welcome-stage {
     min-height: 100svh;
+    min-height: 100dvh;
     min-height: -webkit-fill-available;
     padding:
       max(1rem, env(safe-area-inset-top))
@@ -175,9 +187,10 @@ body.welcome-mode.photo-ready .orbs { opacity: .14; }
     max-width: 360px;
     padding: 1.15rem 1rem;
     border-radius: 24px;
-    background: rgba(13,8,32,.5);
+    background: linear-gradient(180deg, rgba(23,17,43,.82), rgba(13,8,32,.74));
     border: 1px solid rgba(255,255,255,.1);
-    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
     box-shadow: 0 18px 40px rgba(0,0,0,.16);
     position: absolute;
     left: 50%;
@@ -215,14 +228,14 @@ body.welcome-mode.photo-ready .orbs { opacity: .14; }
     pointer-events: none;
   }
   .photo-wall {
-    top: calc(-1 * env(safe-area-inset-top));
-    right: 0;
-    bottom: calc(-7rem - env(safe-area-inset-bottom));
-    left: 0;
+    position: absolute;
+    inset: 0;
     gap: .45rem;
     padding: .35rem 0;
     justify-content: space-between;
     opacity: 0;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
   }
   body.welcome-mode.photo-ready .photo-wall { opacity: .94; }
   .photo-row { gap: .45rem; }
@@ -231,12 +244,10 @@ body.welcome-mode.photo-ready .orbs { opacity: .14; }
     border-radius: 14px;
     box-shadow: 0 10px 30px rgba(0,0,0,.2);
   }
-  .photo-tile img { filter: saturate(1.02) contrast(1.02) brightness(.92); }
+  .photo-tile img { filter: none; }
   .welcome-tint {
-    top: calc(-1 * env(safe-area-inset-top));
-    right: 0;
-    bottom: calc(-7rem - env(safe-area-inset-bottom));
-    left: 0;
+    position: absolute;
+    inset: 0;
     background:
       linear-gradient(180deg, rgba(8,5,20,.2), rgba(8,5,20,.52)),
       radial-gradient(circle at center, rgba(12,8,28,.06), rgba(12,8,28,.38));
@@ -253,9 +264,10 @@ body.welcome-mode.photo-ready .orbs { opacity: .14; }
     width: min(100%, 96vw);
     padding: 1.05rem .95rem 1.15rem;
     border-radius: 24px;
-    background: rgba(13,8,32,.54);
+    background: linear-gradient(180deg, rgba(23,17,43,.8), rgba(13,8,32,.72));
     border: 1px solid rgba(255,255,255,.1);
-    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
     box-shadow: 0 18px 40px rgba(0,0,0,.18);
     margin: 0;
   }
@@ -281,23 +293,24 @@ body.welcome-mode.photo-ready .orbs { opacity: .14; }
 }
 </style>
 </head>
-<body>
-<div class="photo-wall" id="photo-wall" aria-hidden="true">
-  <div class="photo-row"></div>
-  <div class="photo-row"></div>
-  <div class="photo-row"></div>
-</div>
-<div class="welcome-tint" aria-hidden="true"></div>
+<body class="booting">
 <div class="orbs"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div><div class="orb o4"></div></div>
 
 <div id="welcome" class="screen active">
+  <div class="photo-wall" id="photo-wall" aria-hidden="true">
+    <div class="photo-row"></div>
+    <div class="photo-row"></div>
+    <div class="photo-row"></div>
+  </div>
+  <div class="welcome-tint" aria-hidden="true"></div>
+  <div class="welcome-stage">
   <div class="lang-row">
     <button class="lbtn on" onclick="setLang('en')">EN</button>
     <button class="lbtn" onclick="setLang('es')">ES</button>
   </div>
   <div class="mobile-love-note" id="mobile-love-note" aria-hidden="true">
     <div class="heart-icon" id="m-note-emoji">ðŸ’Œ</div>
-    <div class="mobile-love-title" id="m-note-title">Hey love</div>
+    <div class="mobile-love-title" id="m-note-title">Hey Noelle</div>
     <div class="mobile-love-sub" id="m-note-sub">Just for you</div>
     <button class="mobile-love-btn" id="m-note-btn" onclick="dismissMobileIntro()">See more</button>
   </div>
@@ -308,6 +321,7 @@ body.welcome-mode.photo-ready .orbs { opacity: .14; }
   <p class="w-msg" id="w-msg"></p>
   <div class="career-pills" id="cpills"></div>
   <button class="start-btn" onclick="startQuiz()" id="w-btn">I'm ready! âœ¨</button>
+  </div>
   </div>
 </div>
 
@@ -722,7 +736,7 @@ function setupPhotoWall(){
     const ordered=index%2===0 ? PHOTO_SOURCES : [...PHOTO_SOURCES].reverse();
     const tiles=[...ordered,...ordered];
     row.className=`photo-row ${index%2===0?'dir-right':'dir-left'}`;
-    row.innerHTML=tiles.map(src=>`<div class="photo-tile"><img src="${src}" alt=""></div>`).join('');
+    row.innerHTML=tiles.map(src=>`<div class="photo-tile"><img src="${src}" alt="" loading="eager" decoding="sync" draggable="false"></div>`).join('');
     row.style.animationDuration=`${durations[index%durations.length]}s`;
     row.style.setProperty('--row-shift', `${row.scrollWidth/2}px`);
   });
@@ -742,6 +756,14 @@ function dismissMobileIntro(){
   document.body.classList.remove('mobile-intro-active');
 }
 
+function finishBoot(){
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      document.body.classList.remove('booting');
+    });
+  });
+}
+
 function setLang(l){
   lang=l;
   document.querySelectorAll('.lbtn').forEach(b=>b.classList.toggle('on',b.textContent.trim()===l.toUpperCase()));
@@ -754,7 +776,7 @@ function toggleLang(){setLang(lang==='en'?'es':'en');}
 function renderWelcome(){
   const t=lang==='en';
   document.getElementById('m-note-emoji').textContent=fixMojibake('ðŸ’Œ');
-  document.getElementById('m-note-title').textContent=fixMojibake(t?'Hey love':'Hola amor');
+  document.getElementById('m-note-title').textContent=fixMojibake(t?'Hey Noelle':'Hola Noelle');
   document.getElementById('m-note-sub').textContent=fixMojibake(t?'I made this just for you':'Hice esto solo para ti');
   document.getElementById('m-note-btn').textContent=fixMojibake(t?'See more':'Ver mÃ¡s');
   document.getElementById('w-hey').textContent=fixMojibake(t?'Hey love,':'Oye amor,');
@@ -881,7 +903,7 @@ if(typeof MOBILE_MEDIA.addEventListener==='function'){
   MOBILE_MEDIA.addListener(handleViewportChange);
 }
 
-init();repairStaticText();renderWelcome();show('welcome');setupPhotoWall();
+init();repairStaticText();renderWelcome();setupPhotoWall();show('welcome');finishBoot();
 </script>
 </body>
 </html>
